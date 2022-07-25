@@ -1,0 +1,534 @@
+Spring+MySQL+Thymeleaf
+
+application.properties:
+
+spring.datasource.url=jdbc:mysql://localhost:3306/sms?useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false
+spring.datasource.driver-class-name:com.mysql.cj.jdbc.Driver
+spring.datasource.username=root
+spring.datasource.password=root
+server.port=8082  
+
+# Hibernate
+
+# The SQL dialect makes Hibernate generate better SQL for the chosen database
+spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.MySQL5InnoDBDialect
+
+# Hibernate ddl auto (create, create-drop, validate, update)
+spring.jpa.hibernate.ddl-auto = update
+
+logging.level.org.hibernate.SQL=DEBUG
+logging.level.org.hibernate.type=TRACE
+
+
+
+pom.xml:
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.7.1</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.example</groupId>
+	<artifactId>Student-Management-System</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>Student-Management-System</name>
+	<description>Student Management System</description>
+	<properties>
+		<java.version>17</java.version>
+	</properties>
+	
+	
+	<dependencies>
+		
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			</dependency>
+		
+		
+				
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
+
+
+
+
+com.example.demo.entity -> Student.java
+
+package com.example.demo.entity;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name="students")
+public class Student {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+	
+	@Column(name="first_name",nullable = false)
+	private String firstName;
+	
+	@Column(name="last_name")
+	private String lastName;
+	
+	@Column(name="email")
+	private String email;
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String getFirstName() {
+		return firstName;
+	}
+
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+
+	public String getLastName() {
+		return lastName;
+	}
+
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public Student(String firstName, String lastName, String email) {
+		super();
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.email = email;
+	}
+	public Student() {
+		
+	}
+	
+}
+
+
+
+com.example.demo  ->StudentManagementSystemApplication
+
+package com.example.demo;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class StudentManagementSystemApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(StudentManagementSystemApplication.class, args);
+	}
+
+}
+
+
+
+com.example.demo.repository  -> StudentRepository
+
+
+package com.example.demo.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.example.demo.entity.Student;
+
+@Repository
+public interface StudentRepository extends JpaRepository<Student, Long>{
+
+}
+
+
+
+com.example.demo.service   -> StudentService
+
+package com.example.demo.service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.example.demo.entity.Student;
+
+
+public interface StudentService {
+
+	List<Student> getAllStudents();
+	
+	Student saveStudent(Student student);
+	
+	Student getStudentById(Long id);
+	
+	Student updateStudent(Student student);
+	
+	void deleteStudentById(Long id);
+}
+
+
+com.example.demo.service   -> StudentServiceImpl
+
+
+package com.example.demo.service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.example.demo.entity.Student;
+import com.example.demo.repository.StudentRepository;
+
+@Service
+public class StudentServiceImpl implements StudentService {
+
+	private StudentRepository studentRepository;
+
+	public StudentServiceImpl(StudentRepository studentRepository) {
+		super();
+		this.studentRepository = studentRepository;
+	}
+
+	@Override
+	public List<Student> getAllStudents() {
+		return studentRepository.findAll();
+	}
+	
+	@Override
+	public Student saveStudent(Student student)
+	{
+		return studentRepository.save(student);
+	}
+	@Override
+	public Student getStudentById(Long id) {
+		
+		return studentRepository.findById(id).get();
+	}
+
+	@Override
+	public Student updateStudent(Student student) {
+		return studentRepository.save(student);
+	}
+
+	@Override
+	public void deleteStudentById(Long id) {
+			studentRepository.deleteById(id);
+		
+	}	
+}
+
+
+com.example.demo.controller  ->StudentController
+
+package com.example.demo.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+
+import com.example.demo.entity.Student;
+import com.example.demo.service.StudentService;
+
+@Controller
+public class StudentController {
+
+		private StudentService studentService;
+
+		
+		public StudentController(StudentService studentService) {
+			super();
+			this.studentService = studentService;
+		}
+
+
+		@GetMapping("/students")
+		public String listStudents(Model model)
+		{
+			model.addAttribute("students",studentService.getAllStudents()); 
+			return "students";
+			
+		}
+		@GetMapping("/students/new")
+		public String createStudentForm(Model model)
+		{
+			Student student = new Student();
+			model.addAttribute("student", student);
+			return "create_student";
+		}
+		
+		@PostMapping("/students")
+		public String saveStudent(@ModelAttribute("student") Student student)
+		{
+			studentService.saveStudent(student);
+			
+			return "redirect:/students"; 
+		}
+		@GetMapping("/students/edit/{id}")
+		public String editStudentForm(@PathVariable Long id,Model model)
+		{
+			model.addAttribute("student",studentService.getStudentById(id));
+			return "update_student";
+		}
+		@PostMapping("/students/{id}")
+		public String updateStudent(@PathVariable Long id, @ModelAttribute("student") Student student,Model model)
+		{
+			Student temp = studentService.getStudentById(id);
+			
+			temp.setId(id);
+			temp.setEmail(student.getEmail());
+			temp.setFirstName(student.getFirstName());
+			temp.setLastName(student.getLastName());
+			studentService.updateStudent(temp);
+			return "redirect:/students";
+		}
+		@GetMapping("/students/{id}")
+		public String deleteStudent(@PathVariable Long id)
+		{
+			studentService.deleteStudentById(id);
+			return "redirect:/students";
+		}
+	}
+		
+
+src/main/resources/templates ->create_students.html
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<meta charset="ISO-8859-1">
+<title>Student Management System</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">	
+</head>
+<body>
+	<div class="container">
+		<div class="row">
+			<div class="col-lg-6 col-md-6 col-sm-6 container justify-content-center card">
+				<h1 class="text-center">Create New Student</h1>
+				<div class="card-body">
+					<form th:action="@{/students}" th:object="${student}" method="POST">
+						<div class="form-group">
+							<label>Student First Name</label>
+							<input type="text"
+							name="firstName"
+							th:field = "*{firstName}"
+							palceholder="Enter Student First Name"
+							class="form-control"
+						</div>
+						<div class="form-group">
+							<label>Student Last Name</label>
+							<input type="text"
+							name="lastName"
+							th:field = "*{lastName}"
+							palceholder="Enter Student Last Name"
+							class="form-control"
+						</div>
+						<div class="form-group">
+							<label>Student Email</label>
+							<input type="text"
+							name="email"
+							th:field = "*{email}"
+							palceholder="Enter Student Email"
+							class="form-control"
+						</div>
+						<div class="footer-body">
+							<button type="submit" class="btn btn-primary">Submit</button>
+						</div>
+					</form> 
+				</div>
+			</div> 
+		</div>
+	</div>
+	
+</body>
+</html>
+
+
+
+
+
+src/main/resources/templates ->students.html
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<meta charset="ISO-8859-1">
+<title>Student Management System</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">	
+</head>
+<body>
+	<div class="container">
+	
+		<div class="row">
+		
+			<h1>List Students</h1>
+			
+		</div>
+			<div class="row">
+				<div class="col-lg-3">
+					<a th:href="@{/students/new}" class="btn btn-primary btn-sm mb-3">Add Student<a>
+				</div>	
+			</div>
+		
+		<table class="table table-striped table-bordered">
+			<thead class="table-dark">
+				<tr>
+					<th>First Name</th>
+					<th>Last Name</th>
+					<th>Email</th>
+					<th>Actions</th>
+				</tr>
+			</thead>	
+			<tbody>
+				<tr th:each = "student:${students}">
+				<td th:text = "${student.firstName}"></td>
+				<td th:text = "${student.lastName}"></td>
+				<td th:text = "${student.email}"></td>
+				<td>
+					<a th:href="@{/students/edit/{id}(id=${student.id})}" class="btn btn-primary">Update</a>
+					<a th:href="@{/students/{id}(id=${student.id})}" class="btn btn-danger">Delete</a>
+				</td>
+			</tbody>
+		</table>		
+	
+	</div>
+</body>
+</html>
+
+
+src/main/resources/templates ->update_students.html
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<meta charset="ISO-8859-1">
+<title>Student Management System</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">	
+</head>
+<body>
+	<div class="container">
+		<div class="row">
+			<div class="col-lg-6 col-md-6 col-sm-6 container justify-content-center card">
+				<h1 class="text-center">Create New Student</h1>
+				<div class="card-body">
+					<form th:action="@{/students/{id} (id=${student.id})}" th:object="${student}" method="POST">
+						<div class="form-group">
+							<label>Student First Name</label>
+							<input type="text"
+							name="firstName"
+							th:field = "*{firstName}"
+							palceholder="Enter Student First Name"
+							class="form-control"
+						</div>
+						<div class="form-group">
+							<label>Student Last Name</label>
+							<input type="text"
+							name="lastName"
+							th:field = "*{lastName}"
+							palceholder="Enter Student Last Name"
+							class="form-control"
+						</div>
+						<div class="form-group">
+							<label>Student Email</label>
+							<input type="text"
+							name="email"
+							th:field = "*{email}"
+							palceholder="Enter Student Email"
+							class="form-control"
+						</div>
+						<div class="footer-body">
+							<button type="submit" class="btn btn-primary">Submit</button>
+						</div>
+					</form> 
+				</div>
+			</div> 
+		</div>
+	</div>
+	
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

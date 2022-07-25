@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<meta charset="ISO-8859-1">
+<title>Restaurant Details</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">	
+</head>
+<body>
+	<div class="container">
+	
+		<div class="row">
+		
+			<h1>Restaurant List</h1>
+			
+		</div>
+			
+		
+		<table class="table table-striped table-bordered">
+			<thead class="table-dark">
+				<tr>
+					<th>Restaurant Name</th>
+					<th>Restaurant Location</th>
+					<th>Restaurant Rating</th>
+					<th>Restaurant Contact No</th>
+					<th>Restaurant Email Id</th>
+					<th>Restaurant Website</th>
+				</tr>
+			</thead>	
+			<tbody>
+				<tr th:each = "a:${Rdetails}">
+				<td>
+    				<a th:href="@{/users/itemlist/{rId}(rId=${a.rId})}" th:text="${a.rName}" target="_blank" />
+				</td>
+				
+							
+				<td th:text = "${a.rLocation}"></td>
+				<td th:text = "${a.rRating}"></td>
+				<td th:text = "${a.rContactno}"></td>
+				<td th:text = "${a.rEmailid}"></td>
+				<td th:text = "${a.rWebsite}"></td>
+				
+			</tbody>
+		</table>		
+	
+	</div>
+</body>
+</html>

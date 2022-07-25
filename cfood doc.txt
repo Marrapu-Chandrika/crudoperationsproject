@@ -1,0 +1,2082 @@
+
+Spring+MySQL+Thymeleaf
+
+application.properties
+
+
+spring.datasource.url=jdbc:mysql://localhost:3306/cfood?useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false
+spring.datasource.driver-class-name:com.mysql.cj.jdbc.Driver
+spring.datasource.username=root
+spring.datasource.password=root
+server.port=8082  
+
+# Hibernate
+
+# The SQL dialect makes Hibernate generate better SQL for the chosen database
+spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.MySQL5InnoDBDialect
+
+# Hibernate ddl auto (create, create-drop, validate, update)
+spring.jpa.hibernate.ddl-auto = update
+
+logging.level.org.hibernate.SQL=DEBUG
+logging.level.org.hibernate.type=TRACE
+
+
+
+
+
+pom.xml
+
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.7.1</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.example</groupId>
+	<artifactId>Cfood</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>Cfood</name>
+	<description>POC Project</description>
+	<properties>
+		<java.version>17</java.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
+
+
+
+
+
+
+packages:3(entity,repository,controller)
+
+we will run the different modules as per the GetMapping.
+
+
+step 1:create signup: RUN as(http://localhost:8082/users/new)
+
+
+entity is User(class)
+
+
+package com.example.demo.entity;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name="user")
+public class User {
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private int uId;
+	
+	@Column(name="u_name",nullable = false)
+	private String uName;
+	
+	@Column(name="u_password")
+	private String uPassword;
+	
+	
+	@Column(name="u_email")
+	private String eMail;
+	
+	@Column(name="mobileno")
+	private String mobileNo;
+
+	public int getuId() {
+		return uId;
+	}
+
+	public void setuId(int uId) {
+		this.uId = uId;
+	}
+
+	public String getuName() {
+		return uName;
+	}
+
+	public void setuName(String uName) {
+		this.uName = uName;
+	}
+
+	public String getuPassword() {
+		return uPassword;
+	}
+
+	public void setuPassword(String uPassword) {
+		this.uPassword = uPassword;
+	}
+
+	public String geteMail() {
+		return eMail;
+	}
+
+	public void seteMail(String eMail) {
+		this.eMail = eMail;
+	}
+
+	public String getMobileNo() {
+		return mobileNo;
+	}
+
+	public void setMobileNo(String mobileNo) {
+		this.mobileNo = mobileNo;
+	}
+
+	public User(String uName, String uPassword, String eMail, String mobileNo) {
+		super();
+		this.uName = uName;
+		this.uPassword = uPassword;
+		this.eMail = eMail;
+		this.mobileNo = mobileNo;
+	}
+	
+	public User() {
+		
+	}
+	
+	
+
+}
+
+
+
+repository is UserRepository(interface)
+
+
+package com.example.demo.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.example.demo.entity.User;
+
+
+@Repository
+public interface UserRepository extends JpaRepository<User, Integer>{
+
+}
+
+
+
+
+controller is UserController(class)
+
+
+package com.example.demo.controller;
+
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+
+import com.example.demo.entity.User;
+import com.example.demo.repository.UserRepository;
+
+@Controller
+public class UserController {
+
+	
+	@Autowired
+	UserRepository userRepository;
+	
+	@PostMapping("/users/register")
+    public String registerUser(@ModelAttribute("user") User newUser) {
+        List<User> users = userRepository.findAll();
+
+        System.out.println("New user: " + newUser.toString());
+
+        for (User user : users) {
+            System.out.println("Registered user: " + newUser.toString());
+
+            if (user.equals(newUser)) {
+                System.out.println("User Already exists!");
+                return "user_existed";
+            }
+        }
+
+        userRepository.save(newUser);
+        return "user_created";//HTML
+    }
+
+	
+	@GetMapping("/users/new")
+	public String createUserForm(Model model)
+	{
+    	User user = new User();
+		model.addAttribute("user", user);
+		return "create_user";//html
+	}
+	public UserController(UserRepository userRepository) {
+		super();
+		this.userRepository = userRepository;
+		
+	}
+
+}
+
+
+
+
+HTML file is create_user.html
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<meta charset="ISO-8859-1">
+<title>User SignUp Form</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">	
+</head>
+<body>
+	<div class="container">
+		<div class="row">
+			<div class="col-lg-6 col-md-6 col-sm-6 container justify-content-center card">
+				<h1 class="text-center">Create New User</h1>
+				<div class="card-body">
+					<form th:action="@{/users/register}" th:object="${user}" method="POST">
+					
+						<div class="form-group">
+							<label>User Name</label>
+							<input type="text"
+							name="uName"
+							th:field = "*{uName}"
+							palceholder="Enter User Name"
+							class="form-control"
+						</div>
+						<div class="form-group">
+							<label>Password</label>
+							<input type="text"
+							name="uPassword"
+							th:field = "*{uPassword}"
+							palceholder="Enter Password"
+							class="form-control"
+						</div>
+
+							<div class="form-group">
+							<label>Email</label>
+							<input type="text"
+							name="eMail"
+							th:field = "*{eMail}"
+							palceholder="Enter Email"
+							class="form-control"
+						</div>
+						
+							<div class="form-group">
+							<label>Mobile No</label>
+							<input type="text"
+							name="mobileNo"
+							th:field = "*{mobileNo}"
+							palceholder="Enter Mobileno"
+							class="form-control"
+						</div>
+
+						
+						<div class="footer-body">
+							<button type="submit" class="btn btn-primary">Signup</button>
+						</div>
+					</form> 
+				</div>
+			</div> 
+		</div>
+	</div>
+	
+</body>
+</html>
+
+
+
+html is user_created.html
+
+
+<html>
+
+<body>
+
+	<h1>User Created </h1>
+</body>
+</html>
+
+
+
+
+step 2: create Login (need to create login html form)(RUN as http://localhost:8082/users/signin)
+
+
+UserController (class)
+
+
+@GetMapping("/users/signin")
+   	public String createLoginForm(Model model)
+   	{
+       	User user = new User();
+   		model.addAttribute("user", user);
+   		return "create_login";//htmlstep2
+   		
+   	}   
+	
+	@PostMapping("/users/login")
+    public String loginUser(@ModelAttribute("user") User user) {
+        List<User> users = userRepository.findAll();
+
+        for (User other : users) {
+        	
+            if (other.getuName().equals(user.getuName()) && other.getuPassword().equals(user.getuPassword())) {
+            	
+                return "redirect:/res/all";//step2 
+            }
+        }
+        
+        return "redirect:/users/new";//step2
+    }
+
+
+
+
+
+
+
+create_login.html
+
+
+
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<meta charset="ISO-8859-1">
+<title>User SignIn Form</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">	
+</head>
+<body>
+	<div class="container">
+		<div class="row">
+			<div class="col-lg-6 col-md-6 col-sm-6 container justify-content-center card">
+				<h1 class="text-center">Signin Form</h1>
+				<div class="card-body">
+					<form th:action="@{/users/login}" th:object="${user}" method="POST">
+						<div class="form-group">
+							<label>User Name</label>
+							<input type="text"
+							name="uName"
+							th:field = "*{uName}"
+							palceholder="Enter User Name"
+							class="form-control"
+						</div>
+						<div class="form-group">
+							<label>Password</label>
+							<input type="text"
+							name="uPassword"
+							th:field = "*{uPassword}"
+							palceholder="Enter Password"
+							class="form-control"
+						</div>
+						<div class="footer-body">
+							<button type="submit" class="btn btn-primary">Signin</button>
+						</div>
+					</form> 
+				</div>
+			</div> 
+		</div>
+	</div>
+	
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+step 3: after user login navigates to Menu page: navigates to (http://localhost:8082/res/all-displayes retaurants list)
+
+create databases:
+
+restaurant table:
+
+1	HJ,Eluru road	Eluru Road Restaurant	4.5	8897784159	Elurures@gmail.com
+2	HJ,Nuzvidu road	Nuzvidu Road Restaurant	3.0	8897784158	Nuzvidures@gmail.com
+
+
+
+
+
+
+entity is Rdetails(class):
+
+
+package com.example.demo.entity;
+
+import java.util.List;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+@Entity
+@Table(name="restaurant")//step4
+
+public class Rdetails {
+	
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private int rId;
+	
+	
+	@Column
+	private String rName;
+	
+	@Column
+	private double rRating;
+	
+	@Column
+	private String rLocation;
+	
+	@Column
+	private Long rContactno;
+	
+	@Column
+	private String rEmailid;
+	
+	@Column
+	private String rWebsite;
+	
+	
+	
+	
+	
+	
+	public Long getrContactno() {
+		return rContactno;
+	}
+
+	public void setrContactno(Long rContactno) {
+		this.rContactno = rContactno;
+	}
+
+	public String getrEmailid() {
+		return rEmailid;
+	}
+
+	public void setrEmailid(String rEmailid) {
+		this.rEmailid = rEmailid;
+	}
+
+	public String getrWebsite() {
+		return rWebsite;
+	}
+
+	public void setrWebsite(String rWebsite) {
+		this.rWebsite = rWebsite;
+	}
+
+	public int getrId() {
+		return rId;
+	}
+
+	public void setrId(int rId) {
+		this.rId = rId;
+	}
+
+	public String getrName() {
+		return rName;
+	}
+
+	public void setrName(String rName) {
+		this.rName = rName;
+	}
+
+	public double getrRating() {
+		return rRating;
+	}
+
+	public void setrRating(double rRating) {
+		this.rRating = rRating;
+	}
+
+	public String getrLocation() {
+		return rLocation;
+	}
+
+	public void setrLocation(String rLocation) {
+		this.rLocation = rLocation;
+	}
+
+	
+	
+	public Rdetails(String rName, double rRating, String rLocation, Long rContactno, String rEmailid, String rWebsite) {
+		super();
+		this.rName = rName;
+		this.rRating = rRating;
+		this.rLocation = rLocation;
+		this.rContactno = rContactno;
+		this.rEmailid = rEmailid;
+		this.rWebsite = rWebsite;
+	}
+
+	public Rdetails() {
+		
+	}
+	
+
+}
+
+
+
+RdetailsRepository(interface):
+
+
+package com.example.demo.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.example.demo.entity.Rdetails;
+
+
+@Repository
+public interface RdetailsRepository extends JpaRepository<Rdetails, Integer>{
+
+}
+
+
+
+
+UserController(class):
+
+
+@Autowired
+RdetailsRepository rdetailsRepository;
+
+
+@GetMapping("/res/all")
+	public String listRestaurants(Model model)
+	{
+		model.addAttribute("Rdetails",rdetailsRepository.findAll());
+		return "res_details";//step 3 html
+		
+	}
+
+
+	public UserController(UserRepository userRepository, RdetailsRepository rdetailsRepository) {
+		super();
+		
+		this.rdetailsRepository = rdetailsRepository;
+	}
+		
+
+
+
+res_details.html
+
+
+
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<meta charset="ISO-8859-1">
+<title>Restaurant Details</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">	
+</head>
+<body>
+	<div class="container">
+	
+		<div class="row">
+		
+			<h1>Restaurant List</h1>
+			
+		</div>
+			
+		
+		<table class="table table-striped table-bordered">
+			<thead class="table-dark">
+				<tr>
+					<th>Restaurant Name</th>
+					<th>Restaurant Location</th>
+					<th>Restaurant Rating</th>
+					<th>Restaurant Contact No</th>
+					<th>Restaurant Email Id</th>
+					<th>Restaurant Website</th>
+				</tr>
+			</thead>	
+			<tbody>
+				<tr th:each = "a:${Rdetails}">
+				<td>
+    				<a th:href="@{/users/itemlist/{rId}(rId=${a.rId})}" th:text="${a.rName}" target="_blank" />
+				</td>
+				
+							
+				<td th:text = "${a.rLocation}"></td>
+				<td th:text = "${a.rRating}"></td>
+				<td th:text = "${a.rContactno}"></td>
+				<td th:text = "${a.rEmailid}"></td>
+				<td th:text = "${a.rWebsite}"></td>
+				
+			</tbody>
+		</table>		
+	
+	</div>
+</body>
+</html>
+
+
+
+
+step 4: when you clcik on restaurant name it should display respective items list
+
+
+create table:
+
+
+item table:
+
+1	Chicken Dum Biryani	0	120	4	Taste is not price worth.	1
+2	Veg Dum Biiryani	2	95	4	Delivery is on time and taste was good.	1
+3	Lemon Juice	0	35	5	Quality is upto the mark and price worth.	2
+4	Haleem 	25.8	750.5	4	Worth to the offer	1
+5	Chocolate Ice Cream	5	286	5	Packing and taste is best	2
+6	Masala Dosa	0	60.52	4	Taste is good but delivery takes time	3
+7	Cake	0	670	4	Best place for your birthday cake	3
+8	Pizza Burger	70	450	3	Worst Packing.Taste is not upto mark	4
+9	Broasted Chicken	0	740	5	Best broasted chicken	4
+
+
+(select * from item join restaurant on restaurant.r_id = item.rdetails_r_id where restaurant.r_name = 'Eluru Road Restaurant';)	- displays all the ietms from the respective restaurant.
+if we want to delete a column of foreign key column use the below query:
+
+(ALTER TABLE `user` DROP FOREIGN KEY `FK_G38T6P7EKUXYWH1`;
+ALTER TABLE `user` DROP COLUMN `region_id`;)
+
+
+entity is Rdetails(class):
+
+
+
+
+@OneToMany(cascade= CascadeType.ALL)
+	@JoinColumn(name = "r_id_fk", referencedColumnName = "rId")
+	List<Itemdetails> itemdetails = new ArrayList<>();//step4
+
+
+
+
+
+
+
+
+NOTE: ADD below code to Rdetails(entity) to make r_id as foreign key into the item table
+
+
+ @OneToMany(mappedBy = "rdetails")
+	private List<Itemdetails> itemdetails;
+ 		
+
+
+
+Repository is ItemRepository(interface)
+
+
+
+package com.example.demo.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.example.demo.entity.Itemdetails;
+
+@Repository
+public interface ItemRepository extends JpaRepository<Itemdetails, Integer>{
+
+}
+
+
+
+
+Controller is UserController:
+
+
+
+ @GetMapping("/users/itemlist/{rId}")
+		public String findAllByResId(@PathVariable int rId,Model model)
+		{
+			//System.out.println(rId);
+			model.addAttribute("Itemdetails",itemRepository.findAllByResId(rId));
+			return "item_list";//step 4 html
+		}
+
+
+
+
+item_list.html
+
+
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<meta charset="ISO-8859-1">
+<title>Item Details</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">	
+</head>
+<body>
+	<div class="container">
+	
+		<div class="row">
+		
+			<h1>Item List</h1>
+			
+		</div>
+			
+		
+		<table class="table table-striped table-bordered">
+			<thead class="table-dark">
+				<tr>
+					<th>Item Name</th>
+					<th>Item Offer</th>
+					<th>Item Price</th>
+					<th>Item Rating</th>
+					<th>Item Review</th>
+					<th>Select</th>			
+				</tr>
+			</thead>	
+			<tbody>
+				<tr th:each = "a:${Itemdetails}">
+				<td th:text = "${a.iName}"></td>
+				<td th:text = "${a.iOffer}"></td>
+				<td th:text = "${a.iPrice}"></td>
+				<td th:text = "${a.iRating}"></td>
+				<td th:text = "${a.iReview}"></td>
+				<td>
+				<div>
+				    <input type="checkbox" th:value="${a.iId}"/>
+				</div> 
+				</td>
+				
+				
+				</tr>
+			</tbody>
+		</table>
+		<div style='text-align:center'>
+			<input type="submit" value="PLACE ORDER"/>
+		</div>
+		</div>
+</body>
+</html>
+
+
+step 5: particular item to cart store:
+
+
+
+CREATE TABLE SPRING_SESSION
+(
+    PRIMARY_ID            CHAR(36) NOT NULL,
+    SESSION_ID            CHAR(36) NOT NULL,
+    CREATION_TIME         BIGINT   NOT NULL,
+    LAST_ACCESS_TIME      BIGINT   NOT NULL,
+    MAX_INACTIVE_INTERVAL INT      NOT NULL,
+    EXPIRY_TIME           BIGINT   NOT NULL,
+    PRINCIPAL_NAME        VARCHAR(100),
+    CONSTRAINT SPRING_SESSION_PK PRIMARY KEY (PRIMARY_ID)
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC;
+
+
+CREATE UNIQUE INDEX SPRING_SESSION_IX1 ON SPRING_SESSION (SESSION_ID);
+
+
+CREATE INDEX SPRING_SESSION_IX2 ON SPRING_SESSION (EXPIRY_TIME);
+
+
+CREATE INDEX SPRING_SESSION_IX3 ON SPRING_SESSION (PRINCIPAL_NAME);
+
+
+
+
+
+CREATE TABLE SPRING_SESSION_ATTRIBUTES
+(
+    SESSION_PRIMARY_ID CHAR(36)     NOT NULL,
+    ATTRIBUTE_NAME     VARCHAR(200) NOT NULL,
+    ATTRIBUTE_BYTES    BLOB         NOT NULL,
+    CONSTRAINT SPRING_SESSION_ATTRIBUTES_PK PRIMARY KEY (SESSION_PRIMARY_ID, ATTRIBUTE_NAME),
+    CONSTRAINT SPRING_SESSION_ATTRIBUTES_FK FOREIGN KEY (SESSION_PRIMARY_ID) REFERENCES SPRING_SESSION (PRIMARY_ID) ON DELETE CASCADE
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC;
+
+
+
+select *from spring_session;
+
+
+select *from spring_session_attributes;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+STEPS TO RUN PROJECT: CfoodApplicaiton::
+
+PACKAGES :3(entity,repository,controller)
+	  entity      - User,Rdetails,Itemdetails
+	  repository  - UserRepository,RdetailsRepository,ItemdetailsRepository
+ 	  controller  - UserController
+
+
+HTML PAGES :create_login, create_user, item_list, order_display, res_details, user_created
+
+
+MySQL DATABASE NAME - cfood
+TABLES - user, restaurant, item, spring_session, spring_session_attributes	
+
+
+we will run the different modules as per the GetMapping.
+
+
+1)http://localhost:8082/users/new - (create_user.html) (for Registration)after signup control goes to (http://localhost:8082/users/register) and (user_created.html )
+2)http://localhost:8082/users/signin - (create_login.html)(for Login-IF Login success)after login control goes to (http://localhost:8082/res/all - displayes restaurant list)-(res_details.html) and (http://localhost:8082/users/itemlist/)-(item_list.html) and (http://localhost:8082/users/orderdet)-(order_display)
+				     (for Login-IF Login fails) control goes to (http://localhost:8082/users/new - Registration page)-(create_user.html)
+3)
+					
+
+
+
+
+
+
+CODES::
+
+application.properties =>
+
+
+
+spring.datasource.url=jdbc:mysql://localhost:3306/cfood?useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false
+spring.datasource.driver-class-name:com.mysql.cj.jdbc.Driver
+spring.datasource.username=root
+spring.datasource.password=root
+server.port=8082  
+
+# Hibernate
+
+# The SQL dialect makes Hibernate generate better SQL for the chosen database
+spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.MySQL5InnoDBDialect
+
+# Hibernate ddl auto (create, create-drop, validate, update)
+spring.jpa.hibernate.ddl-auto = update
+
+logging.level.org.hibernate.SQL=DEBUG
+logging.level.org.hibernate.type=TRACE
+
+
+
+
+pom.xml =>
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.7.1</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.example</groupId>
+	<artifactId>Cfood</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>Cfood</name>
+	<description>POC Project</description>
+	<properties>
+		<java.version>17</java.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.session</groupId>
+			<artifactId>spring-session-jdbc</artifactId>
+		</dependency> 
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
+
+
+
+
+
+Controller ::
+
+
+UserController.java =>
+
+
+
+package com.example.demo.controller;
+
+import java.net.http.HttpRequest;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import com.example.demo.entity.Itemdetails;
+
+import com.example.demo.entity.Rdetails;
+import com.example.demo.entity.User;
+import com.example.demo.repository.ItemRepository;
+import com.example.demo.repository.RdetailsRepository;
+import com.example.demo.repository.UserRepository;
+
+@Controller
+public class UserController {
+
+	
+	@Autowired
+	UserRepository userRepository;//step 1
+	RdetailsRepository rdetailsRepository;//step3
+	ItemRepository itemRepository;//step 4
+	
+	
+	
+	public UserController(UserRepository userRepository, RdetailsRepository rdetailsRepository,
+			ItemRepository itemRepository) {
+		super();
+		this.userRepository = userRepository;
+		this.rdetailsRepository = rdetailsRepository;
+		this.itemRepository = itemRepository;
+			}
+
+
+	
+	
+	@GetMapping("/users/new")
+	public String createUserForm(Model model)
+	{
+    	User user = new User();
+		model.addAttribute("user", user);
+		return "create_user";//htmlstep1
+	}
+	
+	
+	
+	
+	@PostMapping("/users/register")//step1
+    public String registerUser(@ModelAttribute("user") User newUser,HttpServletRequest request,RedirectAttributes redirAttrs) {
+		
+		redirAttrs.addFlashAttribute("message", "This is message from flash");
+        List<User> users = userRepository.findAll();
+
+        System.out.println("New user: " + newUser.toString());
+
+        for (User user : users) {
+            System.out.println("Registered user: " + newUser.toString());
+
+            if (user.equals(newUser)) {
+                System.out.println("User Already exists!");
+                return "user_existed";
+            }
+        }
+
+        userRepository.save(newUser);
+        request.getSession().setAttribute("cid", newUser.getuId());
+        return "user_created";//HTMLstep1
+        //return "create_user.html";
+    }
+
+
+	
+	@GetMapping("/users/signin")
+   	public String createLoginForm(Model model)
+   	{
+       	User user = new User();
+   		model.addAttribute("user", user);
+   		return "create_login";//htmlstep2
+   		
+   	}   
+	
+	@PostMapping("/users/login")
+    public String loginUser(@ModelAttribute("user") User user,HttpServletRequest request) {
+        List<User> users = userRepository.findAll();
+
+        for (User other : users) {
+        	
+            if (other.getuName().equals(user.getuName()) && other.getuPassword().equals(user.getuPassword())) {
+            	{
+            		System.out.println(user.getuId());
+            		request.getSession().setAttribute("cid", user.getuName());
+            		return "redirect:/res/all";//step2,3
+            	}
+            }
+        }
+        
+        return "redirect:/users/new";//step2
+    }
+	
+	@GetMapping("/res/all")
+	public String listRestaurants(Model model)
+	{
+		model.addAttribute("Rdetails",rdetailsRepository.findAll());
+		
+		return "res_details";//step 3 html
+		
+	}
+
+
+		  
+	  @GetMapping("/users/itemlist/{rId}")
+		public String findAllByResId(@PathVariable int rId,Model model,@ModelAttribute("ress") Rdetails res,HttpServletRequest request)
+		{
+			res=rdetailsRepository.getById(rId);
+			model.addAttribute("Itemdetails",itemRepository.findAllByResId(rId));
+			request.getSession().setAttribute("rid", res.getrName());
+			return "item_list";//step 4 html
+		}
+
+	  @GetMapping("/users/orderdet")
+		public String displayOrder(@RequestParam(value="itemcode") List<Integer> invoiceNoList,HttpServletRequest request,Model model)
+		{
+			/*
+			 * System.out.println(request.getSession().getAttribute("cid"));
+			 * System.out.println(request.getSession().getAttribute("rid")); Itemdetails dd
+			 * = itemRepository.getById(itemcode); System.out.println(dd.getiName());
+			 * System.out.println(dd.getiOffer()); System.out.println(dd.getiPrice());
+			 */
+			
+		
+			int n = invoiceNoList.size();
+
+			for(int i=0;i<n;i++)
+			{
+					//System.out.println(invoiceNoList.get(i));
+					model.addAttribute("Itemdetails"+(i+1),itemRepository.getById(invoiceNoList.get(i)));
+			}
+			
+			return "order_display";//htmlstep5
+		}
+	 
+		
+	 
+}
+
+
+
+
+
+entities::
+
+User.java =>
+
+
+package com.example.demo.entity;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name="user")
+public class User {
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private int uId;
+	
+	@Column(name="u_name",nullable = false)
+	private String uName;
+	
+	@Column(name="u_password")
+	private String uPassword;
+	
+	
+	@Column(name="u_email")
+	private String eMail;
+	
+	@Column(name="mobileno")
+	private String mobileNo;
+
+	public int getuId() {
+		return uId;
+	}
+
+	public void setuId(int uId) {
+		this.uId = uId;
+	}
+
+	public String getuName() {
+		return uName;
+	}
+
+	public void setuName(String uName) {
+		this.uName = uName;
+	}
+
+	public String getuPassword() {
+		return uPassword;
+	}
+
+	public void setuPassword(String uPassword) {
+		this.uPassword = uPassword;
+	}
+
+	public String geteMail() {
+		return eMail;
+	}
+
+	public void seteMail(String eMail) {
+		this.eMail = eMail;
+	}
+
+	public String getMobileNo() {
+		return mobileNo;
+	}
+
+	public void setMobileNo(String mobileNo) {
+		this.mobileNo = mobileNo;
+	}
+
+	public User(String uName, String uPassword, String eMail, String mobileNo) {
+		super();
+		this.uName = uName;
+		this.uPassword = uPassword;
+		this.eMail = eMail;
+		this.mobileNo = mobileNo;
+	}
+	
+	public User() {
+		
+	}
+	
+	
+
+}
+
+
+
+
+Rdetails.java => 
+
+
+package com.example.demo.entity;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+@Entity
+@Table(name="restaurant")//step4
+
+public class Rdetails {
+	
+	
+	
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	//@Column(name="r_id")
+	private int rId;
+	
+	
+	
+	@Column
+	private String rName;
+	
+	@Column
+	private double rRating;
+	
+	@Column
+	private String rLocation;
+	
+	@Column
+	private Long rContactno;
+	
+	@Column
+	private String rEmailid;
+	
+	@Column
+	private String rWebsite;
+	
+	
+	@OneToMany(cascade= CascadeType.ALL)
+	@JoinColumn(name = "r_id_fk", referencedColumnName = "rId")
+	List<Itemdetails> itemdetails = new ArrayList<>();//step4
+	
+	
+	
+	public List<Itemdetails> getItemdetails() {
+		return itemdetails;
+	}
+
+	public void setItemdetails(List<Itemdetails> itemdetails) {
+		this.itemdetails = itemdetails;
+	}
+
+	public Long getrContactno() {
+		return rContactno;
+	}
+
+	public void setrContactno(Long rContactno) {
+		this.rContactno = rContactno;
+	}
+
+	public String getrEmailid() {
+		return rEmailid;
+	}
+
+	public void setrEmailid(String rEmailid) {
+		this.rEmailid = rEmailid;
+	}
+
+	public String getrWebsite() {
+		return rWebsite;
+	}
+
+	public void setrWebsite(String rWebsite) {
+		this.rWebsite = rWebsite;
+	}
+
+	public int getrId() {
+		return rId;
+	}
+
+	public void setrId(int rId) {
+		this.rId = rId;
+	}
+
+	public String getrName() {
+		return rName;
+	}
+
+	public void setrName(String rName) {
+		this.rName = rName;
+	}
+
+	public double getrRating() {
+		return rRating;
+	}
+
+	public void setrRating(double rRating) {
+		this.rRating = rRating;
+	}
+
+	public String getrLocation() {
+		return rLocation;
+	}
+
+	public void setrLocation(String rLocation) {
+		this.rLocation = rLocation;
+	}
+
+	
+	
+	public Rdetails(String rName, double rRating, String rLocation, Long rContactno, String rEmailid, String rWebsite) {
+		super();
+		this.rName = rName;
+		this.rRating = rRating;
+		this.rLocation = rLocation;
+		this.rContactno = rContactno;
+		this.rEmailid = rEmailid;
+		this.rWebsite = rWebsite;
+	}
+
+	public Rdetails() {
+		
+	}
+	
+
+}
+
+
+
+
+
+Itemdetails.java
+
+
+
+
+package com.example.demo.entity;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+@Entity
+@Table(name="item")
+public class Itemdetails {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private int iId;
+	
+	@Column
+	private String iName;
+	
+	@Column
+	private double iRating;
+	
+	@Column
+	private String iReview;
+	
+	@Column
+	private double iOffer;
+	
+	@Column
+	private double iPrice;
+	
+	/*
+	 * @ManyToOne private Rdetails rdetails;//step4
+	 */
+	public int getiId() {
+		return iId;
+	}
+
+	public void setiId(int iId) {
+		this.iId = iId;
+	}
+
+	public String getiName() {
+		return iName;
+	}
+
+	public void setiName(String iName) {
+		this.iName = iName;
+	}
+
+	
+	public double getiRating() {
+		return iRating;
+	}
+
+	public void setiRating(double iRating) {
+		this.iRating = iRating;
+	}
+
+	public String getiReview() {
+		return iReview;
+	}
+
+	public void setiReview(String iReview) {
+		this.iReview = iReview;
+	}
+
+	public double getiOffer() {
+		return iOffer;
+	}
+
+	public void setiOffer(double iOffer) {
+		this.iOffer = iOffer;
+	}
+
+	public double getiPrice() {
+		return iPrice;
+	}
+
+	public void setiPrice(double iPrice) {
+		this.iPrice = iPrice;
+	}
+
+	public Itemdetails(String iName, double iRating, String iReview, double iOffer, double iPrice) {
+		super();
+		this.iName = iName;
+		this.iRating = iRating;
+		this.iReview = iReview;
+		this.iOffer = iOffer;
+		this.iPrice = iPrice;
+	}
+	
+	public Itemdetails() {}
+	
+	
+	
+}
+
+
+
+
+Repositories::
+
+
+UserRepository.java =>
+
+
+package com.example.demo.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.example.demo.entity.User;
+
+
+@Repository
+public interface UserRepository extends JpaRepository<User, Integer>{
+
+}
+
+
+
+
+RdetailsRepository =>
+
+
+package com.example.demo.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.example.demo.entity.Rdetails;
+
+
+@Repository
+public interface RdetailsRepository extends JpaRepository<Rdetails, Integer>{	
+
+}
+
+
+
+
+ItemRepository =>
+
+
+
+package com.example.demo.repository;
+
+
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import com.example.demo.entity.Itemdetails;
+
+@Repository
+public interface ItemRepository extends JpaRepository<Itemdetails, Integer>{
+
+	@Query("SELECT idet from Rdetails rdet join rdet.itemdetails idet where rdet.rId = :rId")
+	List<Itemdetails> findAllByResId(@Param("rId") int rId);
+}
+
+
+
+
+HTML ::
+
+
+user_created.html =>
+
+
+<html>
+
+<body>
+
+	<h1>User Created </h1>
+</body>
+</html>
+
+
+
+
+
+res_details.html =>
+
+
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<meta charset="ISO-8859-1">
+<title>Restaurant Details</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">	
+</head>
+<body>
+	<div class="container">
+	
+		<div class="row">
+		
+			<h1>Restaurant List</h1>
+			
+		</div>
+			
+		
+		<table class="table table-striped table-bordered">
+			<thead class="table-dark">
+				<tr>
+					<th>Restaurant Name</th>
+					<th>Restaurant Location</th>
+					<th>Restaurant Rating</th>
+					<th>Restaurant Contact No</th>
+					<th>Restaurant Email Id</th>
+					<th>Restaurant Website</th>
+				</tr>
+			</thead>	
+			<tbody>
+				<tr th:each = "a:${Rdetails}">
+				<td>
+    				<a th:href="@{/users/itemlist/{rId}(rId=${a.rId})}" th:text="${a.rName}" target="_blank" />
+				</td>
+				
+							
+				<td th:text = "${a.rLocation}"></td>
+				<td th:text = "${a.rRating}"></td>
+				<td th:text = "${a.rContactno}"></td>
+				<td th:text = "${a.rEmailid}"></td>
+				<td th:text = "${a.rWebsite}"></td>
+				
+			</tbody>
+		</table>		
+	
+	</div>
+</body>
+</html>
+
+
+
+order_display.html =>
+
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<meta charset="ISO-8859-1">
+<title>Place order</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">	
+</head>
+<body>
+	<div class="container">
+	
+		<div class="row">
+		
+			<h1>Order Details</h1>
+			
+		</div>
+				
+		<table class="table table-striped table-bordered">
+			
+			<tbody>
+				<tr th:each = "o:${Itemdetails1}">
+				<td>Item Name:</td><td th:text = "${o.iName}"></td>
+				<td>Item Offer:</td><td th:text = "${o.iOffer}"></td>
+				<td>Item Price:</td><td th:text = "${o.iPrice}"></td>
+				</tr>
+				<tr th:each = "o1:${Itemdetails2}">
+				<td>Item Name:</td><td th:text = "${o1.iName}"></td>
+				<td>Item Offer:</td><td th:text = "${o1.iOffer}"></td>
+				<td>Item Price:</td><td th:text = "${o1.iPrice}"></td>
+				
+				</tr>				
+			</tbody>
+		</table>		
+	
+	</div>
+</body>
+</html>
+
+
+
+
+
+item_list.html =>
+
+
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<meta charset="ISO-8859-1">
+<title>Item Details</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">	
+</head>
+<body>
+	<div class="container">
+	
+		<div class="row">
+		
+			<h1>Item List</h1>
+			
+		</div>
+			
+		<form th:action="@{/users/orderdet}" th:object="${Itemdetails}" method="GET">
+		<table class="table table-striped table-bordered">
+			<thead class="table-dark">
+				<tr>
+					<th>Item Name</th>
+					<th>Item Offer</th>
+					<th>Item Price</th>
+					<th>Item Rating</th>
+					<th>Item Review</th>
+					<th>Select</th>			
+				</tr>
+			</thead>	
+			<tbody>
+				<tr th:each = "a:${Itemdetails}">
+				<td th:text = "${a.iName}"></td>
+				<td th:text = "${a.iOffer}"></td>
+				<td th:text = "${a.iPrice}"></td>
+				<td th:text = "${a.iRating}"></td>
+				<td th:text = "${a.iReview}"></td>
+				<td>
+				<div>
+				    <input type="checkbox" th:value="${a.iId}" th:name="itemcode"/>
+				</div> 
+				</td>
+				</tr>
+				
+			</tbody>
+		</table>
+		<div style='text-align:center'>
+			<input type="submit" value="PLACE ORDER"/>
+		</div>
+		</div>
+		</form>
+</body>
+</html>
+
+
+
+create_user.html =>
+
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<meta charset="ISO-8859-1">
+<title>User SignUp Form</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">	
+</head>
+<body>
+	<div class="container">
+		<div class="row">
+			<div class="col-lg-6 col-md-6 col-sm-6 container justify-content-center card">
+				
+				<h2 th:text="${message}"></h2>
+				<h1 class="text-center">Create New User</h1>
+				<div class="card-body">
+					<form th:action="@{/users/register}" th:object="${user}" method="POST">
+					
+						<div class="form-group">
+							<label>User Name</label>
+							<input type="text"
+							name="uName"
+							th:field = "*{uName}"
+							palceholder="Enter User Name"
+							class="form-control"
+						</div>
+						<div class="form-group">
+							<label>Password</label>
+							<input type="text"
+							name="uPassword"
+							th:field = "*{uPassword}"
+							palceholder="Enter Password"
+							class="form-control"
+						</div>
+
+							<div class="form-group">
+							<label>Email</label>
+							<input type="text"
+							name="eMail"
+							th:field = "*{eMail}"
+							palceholder="Enter Email"
+							class="form-control"
+						</div>
+						
+							<div class="form-group">
+							<label>Mobile No</label>
+							<input type="text"
+							name="mobileNo"
+							th:field = "*{mobileNo}"
+							palceholder="Enter Mobileno"
+							class="form-control"
+						</div>
+
+						
+						<div class="footer-body">
+							<button type="submit" class="btn btn-primary">Signup</button>
+						</div>
+					</form> 
+				</div>
+			</div> 
+		</div>
+	</div>
+	
+</body>
+</html>
+
+
+create_login.html =>
+
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<meta charset="ISO-8859-1">
+<title>User SignIn Form</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">	
+</head>
+<body>
+	<div class="container">
+		<div class="row">
+			<div class="col-lg-6 col-md-6 col-sm-6 container justify-content-center card">
+				<h1 class="text-center">Signin Form</h1>
+				<div class="card-body">
+					<form th:action="@{/users/login}" th:object="${user}" method="POST">
+						<div class="form-group">
+							<label>User Name</label>
+							<input type="text"
+							name="uName"
+							th:field = "*{uName}"
+							palceholder="Enter User Name"
+							class="form-control"
+						</div>
+						<div class="form-group">
+							<label>Password</label>
+							<input type="text"
+							name="uPassword"
+							th:field = "*{uPassword}"
+							palceholder="Enter Password"
+							class="form-control"
+						</div>
+						<div class="footer-body">
+							<button type="submit" class="btn btn-primary">Signin</button>
+						</div>
+					</form> 
+				</div>
+			</div> 
+		</div>
+	</div>
+	
+</body>
+</html>
+
+
+
+DATABASES =>
+
+
+
+create database cfood;
+
+use cfood;
+
+select *from user;
+
+select * from restaurant;
+
+select *from item;
+
+
+desc user;
+
+o/p:   
+
+field		type		null	key	default	 extra
+
+u_id		int		NO	PRI		 auto_increment
+u_email		varchar(255)	YES			
+mobileno	varchar(255)	YES			
+u_name		varchar(255)	NO			
+u_password	varchar(255)	YES			
+
+
+desc restaurant;
+
+
+field		type		null	key	default	 extra
+
+r_id		int		NO	PRI		 auto_increment
+r_contactno	bigint		YES			
+r_emailid	varchar(255)	YES			
+r_location	varchar(255)	YES			
+r_name		varchar(255)	YES			
+r_rating	double		YES			
+r_website	varchar(255)	YES			
+
+
+
+desc item;
+
+field		type		null	key	default	 extra
+
+
+i_id		int		NO	PRI		 auto_increment
+i_name		varchar(255)	YES			
+i_offer		double		YES			
+i_price		double		YES			
+i_rating	double		YES			
+i_review	varchar(255)	YES			
+r_id_fk		int		YES	MUL		
+
+
+
+
+CREATE TABLE SPRING_SESSION
+(
+    PRIMARY_ID            CHAR(36) NOT NULL,
+    SESSION_ID            CHAR(36) NOT NULL,
+    CREATION_TIME         BIGINT   NOT NULL,
+    LAST_ACCESS_TIME      BIGINT   NOT NULL,
+    MAX_INACTIVE_INTERVAL INT      NOT NULL,
+    EXPIRY_TIME           BIGINT   NOT NULL,
+    PRINCIPAL_NAME        VARCHAR(100),
+    CONSTRAINT SPRING_SESSION_PK PRIMARY KEY (PRIMARY_ID)
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC;
+
+
+CREATE UNIQUE INDEX SPRING_SESSION_IX1 ON SPRING_SESSION (SESSION_ID);
+
+
+CREATE INDEX SPRING_SESSION_IX2 ON SPRING_SESSION (EXPIRY_TIME);
+
+
+CREATE INDEX SPRING_SESSION_IX3 ON SPRING_SESSION (PRINCIPAL_NAME);
+
+
+
+
+
+CREATE TABLE SPRING_SESSION_ATTRIBUTES
+(
+    SESSION_PRIMARY_ID CHAR(36)     NOT NULL,
+    ATTRIBUTE_NAME     VARCHAR(200) NOT NULL,
+    ATTRIBUTE_BYTES    BLOB         NOT NULL,
+    CONSTRAINT SPRING_SESSION_ATTRIBUTES_PK PRIMARY KEY (SESSION_PRIMARY_ID, ATTRIBUTE_NAME),
+    CONSTRAINT SPRING_SESSION_ATTRIBUTES_FK FOREIGN KEY (SESSION_PRIMARY_ID) REFERENCES SPRING_SESSION (PRIMARY_ID) ON DELETE CASCADE
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC;
+
+
+
+select *from spring_session;
+
+select *from spring_session_attributes;
+
+
+
+desc spring_session;
+
+
+field			type		null	key	default	 extra
+
+
+PRIMARY_ID		char(36)	NO	PRI		
+SESSION_ID		char(36)	NO	UNI		
+CREATION_TIME		bigint		NO			
+LAST_ACCESS_TIME	bigint		NO			
+MAX_INACTIVE_INTERVAL	int		NO			
+EXPIRY_TIME		bigint		NO	MUL		
+PRINCIPAL_NAME		varchar(100)	YES	MUL	
+
+
+
+desc spring_session_attributes;
+
+
+
+field			type		null	key	default	 extra
+
+
+SESSION_PRIMARY_ID	char(36)	NO	PRI		
+ATTRIBUTE_NAME		varchar(200)	NO	PRI		
+ATTRIBUTE_BYTES		blob		NO				
+
+
+
+
+

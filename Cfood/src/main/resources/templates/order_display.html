@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<meta charset="ISO-8859-1">
+<title>Place order</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">	
+</head>
+<body>
+	<div class="container">
+	
+		<div class="row">
+		
+		
+		<h3 style="text-align:center">Order Details</h3>
+			
+		</div>
+		<div class="row">
+			<h3>Restarunt Name:</h3><h3 style="color:darksalmon;text-align:center" th:text="${session.rid}">Message</h3>
+		</div>		
+		
+		<table name="tablename" class="table table-striped table-bordered" th:with="totalPrice=0">
+			
+			<tbody>
+			    <tr th:each = "o:${Itemdetails1}">
+				<td>Item Name:</td><td th:text = "${o.iName}"></td>
+				<td>Item Offer:</td><td th:text = "${o.iOffer}"></td>
+				<td>Item Price:</td><td th:text = "${o.iPrice}"></td>
+				<td th:each="oo:${order1}"><a th:href="@{/orderdel/{id}(id=${oo.o_Id})}" class="btn btn-danger">Delete</a></td>
+				</tr>			
+				<tr th:each = "o1:${Itemdetails2}">
+				<td>Item Name:</td><td th:text = "${o1.iName}"></td>
+				<td>Item Offer:</td><td th:text = "${o1.iOffer}"></td>
+				<td>Item Price:</td><td th:text = "${o1.iPrice}"></td>
+				<td th:each="ooo:${order2}"><a th:href="@{/orderdel/{id}(id=${ooo.o_Id})}" class="btn btn-danger">Delete</a></td>
+						
+				</tr>
+								
+			</tbody>
+		</table>
+		
+		<div class="row">
+			<h3>Total Amount:</h3><h3 th:text="${session.totalPrice}">Message</h3>
+		</div>		
+		
+		
+		<div style='text-align:center'>
+			<input type="submit" value="PAY"/>
+		</div>	
+	
+	</div>
+</body>
+</html>

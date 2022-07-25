@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<meta charset="ISO-8859-1">
+<title>User SignUp Form</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">	
+</head>
+<body>
+	<div class="container">
+		<div class="row">
+			<div class="col-lg-6 col-md-6 col-sm-6 container justify-content-center card">
+				<h3 style="color:red;text-align:center" th:text="${session.msg}">Message</h3>				
+							<h1 class="text-center">SignUp Form</h1>
+				<div class="card-body">
+					<form th:action="@{/users/register}" th:object="${user}" method="POST">
+					
+						<div class="form-group">
+						
+							<label>User Name</label>
+							<input type="text"
+							name="uName"
+							th:field = "*{uName}"
+							palceholder="Enter User Name"
+							class="form-control"
+							/>
+							
+							<span class="alert alert-warning" th:if="${#fields.hasErrors('uName')}" th:errors="*{uName}"></span>
+							
+						</div>
+						<div class="form-group">
+							<label>Password</label>
+							<input type="text"
+							name="uPassword"
+							th:field = "*{uPassword}"
+							palceholder="Enter Password"
+							class="form-control"/>
+							<span class="alert alert-warning" th:if="${#fields.hasErrors('uPassword')}" th:errors="*{uPassword}"></span>
+						</div>
+
+							<div class="form-group">
+							<label>Email</label>
+							<input type="text"
+							name="eMail"
+							th:field = "*{eMail}"
+							palceholder="Enter Email"
+							class="form-control"/>
+							<span class="alert alert-warning" th:if="${#fields.hasErrors('eMail')}" th:errors="*{eMail}"></span>
+						</div>
+						
+							<div class="form-group">
+							<label>Mobile No</label>
+							<input type="text"
+							name="mobileNo"
+							th:field = "*{mobileNo}"
+							palceholder="Enter Mobileno"
+							class="form-control"/>
+							<span class="alert alert-warning" th:if="${#fields.hasErrors('mobileNo')}" th:errors="*{mobileNo}"></span>
+						</div>
+
+						
+						<div class="footer-body">
+							<button type="submit" class="btn btn-primary">Signup</button>
+						</div>
+					</form> 
+				</div>
+			</div> 
+		</div>
+	</div>
+	
+</body>
+</html>
