@@ -40,6 +40,7 @@ public class UserController {
 
 	
 	ArrayList l = new ArrayList();
+	
 	@Autowired
 	UserRepository userRepository;//step 1
 	RdetailsRepository rdetailsRepository;//step3
@@ -117,18 +118,39 @@ public class UserController {
 	@PostMapping("/users/login")
     public String loginUser(@ModelAttribute("user") User user,HttpServletRequest request) {
         List<User> users = userRepository.findAll();
+        
+        boolean flag=false;
 
         for (User other : users) {
         	
-            if (other.getuName().equals(user.getuName()) && other.getuPassword().equals(user.getuPassword())) {
+            /*if (other.getuName().equals(user.getuName()) && other.getuPassword().equals(user.getuPassword())) {
             	{
             		System.out.println(user.getuId());
             		request.getSession().setAttribute("cid", user.getuName());
             		return "redirect:/res/all";//step2,3
-            	}
-            }
+            	}*/
+            
+        		if (other.getuName().equals(user.getuName()))
+        		{
+        				if(other.getuPassword().equals(user.getuPassword())){
+        					System.out.println(user.getuId());
+                    		request.getSession().setAttribute("cid", user.getuName());
+                    		return "redirect:/res/all";
+        				}
+        				else
+        				{
+        					request.getSession().setAttribute("msg", "Password Mismatch");
+        					return "create_login";
+        				}
+        						
+        		}
+        		
+        		else
+        		{
+        			request.getSession().setAttribute("msg", "User doesn't exists");
+					return "create_login";
+        		}
         }
-        
         return "redirect:/users/new";//step2
     }
 	
@@ -250,5 +272,10 @@ public class UserController {
 			return "order_display";//htmlstep5
 		}
 	 	
+	 @GetMapping("/users/pay")
+	 public String pay(Model model)
+	 {
+		 return "payment_success";
+	 }
 	 
 }

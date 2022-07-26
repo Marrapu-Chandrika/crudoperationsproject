@@ -11,6 +11,7 @@
 	<div class="container">
 		<div class="row">
 			<div class="col-lg-6 col-md-6 col-sm-6 container justify-content-center card">
+			<h3 style="color:red;text-align:center" th:text="${session.msg}">Message</h3>	
 				<h1 class="text-center">SignIn Form</h1>
 				<div class="card-body">
 					<form th:action="@{/users/login}" th:object="${user}" method="POST">
